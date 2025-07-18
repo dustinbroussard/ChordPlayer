@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QFileDialog, QSlider, QMessageBox, QProgressDialog
 )
-from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QRect
+from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QRect, QSize
 from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QBrush, QPen
 
 # --- Constants & Configuration ---
@@ -692,11 +692,11 @@ class PygameWidget(QWidget):
         self.playback_position_ms = playback_pos_ms
         self.song_duration_ms = song_duration_ms
 
-    def sizeHint(self) -> Qt.QSize:
-        return Qt.QSize(1024, 768)
+    def sizeHint(self) -> QSize:
+        return QSize(1024, 768)
 
-    def minimumSizeHint(self) -> Qt.QSize:
-        return Qt.QSize(640, 480)
+    def minimumSizeHint(self) -> QSize:
+        return QSize(640, 480)
 
     def paintEvent(self, event: Any): # QPaintEvent
         if self.screen is None:
@@ -1211,7 +1211,9 @@ class ChordPlayerApp(QWidget):
 
     def _seek_slider_moved(self, value: int):
         # Pause real-time updates while dragging, but update the visualizer
-        self.visualizer.set_realtime_data(self.audio_processor.volume_data, self.audio_processor.freq_band_data, value) # Use last known volume/freq
+        volume = getattr(self.audio_processor.volume_data, "current_value", 0.0)
+        freq = getattr(self.audio_processor.freq_band_data, "current_value", {"bass": 0.0, "mids": 0.0, "highs": 0.0})
+        self.visualizer.set_realtime_data(volume, freq, value)  # Use last known volume/freq
         self.update_time_label(value, self.song_duration_ms)
         self.is_playing = self.audio_processor._is_playing # Remember current state
         self.audio_processor.pause() # Temporarily pause real stream to avoid jitter
