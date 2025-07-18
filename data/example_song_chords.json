@@ -1,0 +1,9 @@
+[
+  {"timestamp": 0, "chord": "Cmaj"},
+  {"timestamp": 5000, "chord": "Gmaj"},
+  {"timestamp": 10000, "chord": "Am"},
+  {"timestamp": 15000, "chord": "Fmaj"},
+  {"timestamp": 20000, "chord": "Cmaj"},
+  {"timestamp": 25000, "chord": "Gmaj"},
+  {"timestamp": 30000, "chord": "Cmaj (Outro)"}
+]
