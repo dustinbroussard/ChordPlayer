@@ -4,7 +4,6 @@ import time
 import os
 import hashlib
 import threading
-from collections import deque
 from typing import List, Dict, Tuple, Any, Optional
 
 import pygame
@@ -18,8 +17,8 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QFileDialog, QSlider, QMessageBox, QProgressDialog
 )
-from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QRect, QSize
-from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QBrush, QPen
+from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QSize
+from PyQt6.QtGui import QFont, QColor, QPalette
 
 # --- Constants & Configuration ---
 CHORDS_CACHE_DIR = "chord_cache"
@@ -589,16 +588,11 @@ class VisualizerWindow(QWidget):
     def _update_current_chord_and_color(self):
         # Find the correct chord for the current timestamp
         new_chord_name = "N/A"
-        next_chord_name = "N/A"
-        next_chord_time = self.song_duration_ms + 1 # Default to end of song
 
         if self.chord_timeline:
             for i in range(len(self.chord_timeline) - 1, -1, -1):
                 if self.chord_timeline[i]['timestamp'] <= self.playback_position_ms:
                     new_chord_name = self.chord_timeline[i]['chord']
-                    if i + 1 < len(self.chord_timeline):
-                        next_chord_name = self.chord_timeline[i+1]['chord']
-                        next_chord_time = self.chord_timeline[i+1]['timestamp']
                     break
             
             # Special case for 0ms if it's the only chord or first chord isn't at 0
@@ -606,7 +600,6 @@ class VisualizerWindow(QWidget):
                  new_chord_name = self.chord_timeline[0]['chord']
 
         current_color_obj = CHORD_COLORS.get(new_chord_name, CHORD_COLORS["Unknown"])
-        next_color_obj = CHORD_COLORS.get(next_chord_name, CHORD_COLORS["Unknown"])
 
         # Update target color if chord name changed
         if new_chord_name != self.current_chord_info['chord']:
@@ -812,24 +805,13 @@ class PygameWidget(QWidget):
             # This is complex as it depends on chord text width
             # We will approximate this by simply rendering around the center
             
-            # Draw scrolling chords
-            x_offset = 0 # This will be adjusted to center current chord
-            
-            # Approximate current chord text width for centering
-            current_chord_text = self.chord_timeline[current_chord_idx]['chord']
-            text_surf = self.chord_font.render(current_chord_text, True, (255,255,255))
-            current_chord_text_width = text_surf.get_width()
+            # Draw scrolling chords around the current position
 
             # Iterate through chords around the current position
             # We'll render chords in a fixed visible range relative to the current playback position
             # and let them scroll/fade based on their timestamp.
 
-            # Determine visible range of timestamps
-            visible_start_ms = self.playback_position_ms - (self.width() / 2) * (1000 / 150) # Approx 150 pixels per second
-            visible_end_ms = self.playback_position_ms + (self.width() / 2) * (1000 / 150)
-
-            # Keep track of the X position as we render
-            current_x_render_pos = cx - current_chord_text_width / 2 # Start drawing from center
+            # Determine visible range of timestamps (unused but kept for clarity)
 
             # Go left from current chord
             for i in range(current_chord_idx, -1, -1):
